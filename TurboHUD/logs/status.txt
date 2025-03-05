@@ -1,0 +1,53 @@
+﻿2025.02.19 12:38:20.968	loading database
+2025.02.19 12:38:22.640	database loaded
+2025.02.19 12:38:22.652	new context [25.2.18.0] [Microsoft Windows NT 10.0.26100.0 / Windows 10]
+2025.02.19 12:38:22.670	initializing overlay
+2025.02.19 12:38:22.705		create Direct2D1 Factory
+2025.02.19 12:38:22.717		create DirectWrite Factory
+2025.02.19 12:38:22.721		create DirectInput
+2025.02.19 12:38:22.767		create DirectInput Keyboard
+2025.02.19 12:38:22.809		create SwapChain
+2025.02.19 12:38:22.909		maximum supported feature level: Level_11_0
+2025.02.19 12:38:22.946	create render target
+2025.02.19 12:38:22.950	render target created
+2025.02.19 12:38:23.008	starting tcp listener on port #8081
+2025.02.19 12:38:23.218	loading configuration
+2025.02.19 12:38:23.218		config.xml
+2025.02.19 12:38:23.357	configuration loaded
+2025.02.19 12:38:23.484	loading plugins
+2025.02.19 12:38:35.453	plugins loaded
+2025.02.19 12:38:36.550	create render target
+2025.02.19 12:38:36.550	render target created
+2025.02.19 12:39:07.333	create render target
+2025.02.19 12:39:07.334	render target created
+2025.02.19 12:39:07.391	create render target
+2025.02.19 12:39:07.392	render target created
+2025.02.19 12:39:09.599	create render target
+2025.02.19 12:39:09.599	render target created
+2025.02.19 12:39:09.627	create render target
+2025.02.19 12:39:09.628	render target created
+2025.02.19 12:39:27.563	new run: 圣教军, New Tristram, Difficulty: t16
+2025.02.19 13:09:30.908	new area: Rift Level 01
+2025.02.19 13:13:54.270	new area: Rift Level 01
+2025.02.19 13:13:54.555	new area: Rift Level 02
+2025.02.19 13:14:57.568	new area: Rift Level 03
+2025.02.19 13:15:41.761	new area: Rift Level 03
+2025.02.19 13:15:42.403	new area: Rift Level 04
+2025.02.19 13:16:34.581	new area: Rift Level 04
+2025.02.19 13:16:35.057	new area: New Tristram
+2025.02.19 13:16:50.729	new area: New Tristram
+2025.02.19 13:16:50.793	new area: Rift Level 01
+2025.02.19 13:17:22.481	new area: Rift Level 01
+2025.02.19 13:17:22.957	new area: Rift Level 02
+2025.02.19 13:18:49.070	new area: Rift Level 02
+2025.02.19 13:18:49.833	new area: Rift Level 03
+2025.02.19 13:20:16.853	new area: Rift Level 03
+2025.02.19 13:20:17.274	new area: New Tristram
+2025.02.19 13:20:54.454	new area: Rift Level 01
+2025.02.19 13:22:36.086	new area: Rift Level 01
+2025.02.19 13:22:36.263	new area: Rift Level 02
+2025.02.19 13:24:13.588	new area: Rift Level 02
+2025.02.19 13:24:13.971	new area: New Tristram
+2025.02.19 13:29:36.007	new run: 圣教军, New Tristram, Difficulty: t16
+2025.02.19 13:29:44.741	terminate TurboHUD because Diablo 3 is not running
+2025.02.19 13:29:44.811	exit
