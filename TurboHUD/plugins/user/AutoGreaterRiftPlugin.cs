@@ -7,6 +7,7 @@ namespace Turbo.Plugins.User
     using System.Linq;
     using System;
     using SharpDX;
+    using System.IO;
 
     public class AutoGreaterRiftPlugin : BasePlugin, IInGameTopPainter, IKeyEventHandler, INewAreaHandler, IAfterCollectHandler
     {
@@ -39,6 +40,8 @@ namespace Turbo.Plugins.User
 
         public IFont DebugFont { get; private set; }
         private List<string> DebugMessages = new List<string>();
+        private AutoGreaterRiftPathfindingPlugin PathfindingPlugin { get; set; }
+        private string LogFilePath => Path.Combine(Directory.GetCurrentDirectory(), "AutoGreaterRiftPlugin_Log.txt");
 
         public AutoGreaterRiftPlugin()
         {
@@ -57,12 +60,25 @@ namespace Turbo.Plugins.User
             DelayTimer = Hud.Time.CreateWatch();
             ToggleKeyEvent = Hud.Input.CreateKeyEvent(true, Key.Insert, false, false, false);
             DebugFont = Hud.Render.CreateFont("tahoma", 8, 255, 0, 255, 0, true, false, 255, 0, 0, 0, true);
+            PathfindingPlugin = Hud.GetPlugin<AutoGreaterRiftPathfindingPlugin>();
+            // 初始化日志文件
+            if (File.Exists(LogFilePath)) File.Delete(LogFilePath);
         }
 
         private void AddDebugMessage(string message)
         {
-            DebugMessages.Add($"{Hud.Game.CurrentGameTick}: {message}");
+            string timestampedMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [{Hud.Game.CurrentGameTick}] {message}";
+            DebugMessages.Add(timestampedMessage);
             if (DebugMessages.Count > 10) DebugMessages.RemoveAt(0);
+            // 写入日志文件
+            try
+            {
+                File.AppendAllText(LogFilePath, timestampedMessage + Environment.NewLine);
+            }
+            catch (Exception ex)
+            {
+                Hud.Sound.Speak("日志写入失败: " + ex.Message);
+            }
         }
 
         public void PaintTopInGame(ClipState clipState)
@@ -97,10 +113,14 @@ namespace Turbo.Plugins.User
                 if (Running)
                 {
                     StatusHeader = "大秘境自动化脚本已启动";
+                    PathfindingPlugin.AutoNavigate = true;
+                    AddDebugMessage("脚本启动，AutoNavigate 设置为 true");
                 }
                 else
                 {
                     StatusHeader = "大秘境自动化脚本已停止";
+                    PathfindingPlugin.AutoNavigate = false;
+                    AddDebugMessage("脚本停止，AutoNavigate 设置为 false");
                 }
             }
         }
@@ -111,6 +131,8 @@ namespace Turbo.Plugins.User
             {
                 Running = false;
                 CurrentStep = RiftStep.OpenRift;
+                PathfindingPlugin.AutoNavigate = false;
+                AddDebugMessage("新游戏开始，重置状态");
             }
         }
 
@@ -123,6 +145,15 @@ namespace Turbo.Plugins.User
             }
             if (!Hud.Game.IsInGame || Hud.Game.Me.IsDead) return;
             ExecuteCurrentStep();
+            if (PathfindingPlugin != null)
+            {
+                AddDebugMessage("调用 PathfindingPlugin.Update");
+                PathfindingPlugin.Update(Hud);
+            }
+            else
+            {
+                AddDebugMessage("PathfindingPlugin 为 null");
+            }
         }
 
         private void ExecuteCurrentStep()
@@ -156,23 +187,30 @@ namespace Turbo.Plugins.User
             AddDebugMessage("进入 OpenGreaterRift");
             if (IsInTown && !IsInRift)
             {
+                foreach (var actor in Hud.Game.Actors.Where(a => a.FloorCoordinate.XYDistanceTo(Hud.Game.Me.FloorCoordinate) < 150.0f))
+                {
+                    AddDebugMessage($"Actor: SNO={actor.SnoActor?.Sno}, Name={actor.SnoActor?.NameEnglish}, Distance={actor.FloorCoordinate.XYDistanceTo(Hud.Game.Me.FloorCoordinate)}");
+                }
+
                 var obelisk = Hud.Game.Actors.FirstOrDefault(a => a.SnoActor?.Sno == ActorSnoEnum._x1_openworld_lootrunobelisk_b);
                 if (obelisk != null)
                 {
-                    AddDebugMessage("找到方尖碑，距离: " + obelisk.FloorCoordinate.XYDistanceTo(Hud.Game.Me.FloorCoordinate));
                     var playerPos = Hud.Game.Me.FloorCoordinate;
                     var obeliskPos = obelisk.FloorCoordinate;
-                    if (obeliskPos.XYDistanceTo(playerPos) > 10.0f)
+                    var distance = obeliskPos.XYDistanceTo(playerPos);
+                    AddDebugMessage($"找到方尖碑，SNO: {obelisk.SnoActor?.Sno}, 距离: {distance}");
+                    if (distance > 10.0f)
                     {
-                        var pathfinding = Hud.GetPlugin<AutoGreaterRiftPathfindingPlugin>();
-                        if (pathfinding != null)
+                        if (PathfindingPlugin != null)
                         {
                             AddDebugMessage("设置寻路目标");
-                            pathfinding.CurrentTarget = new Vector2(obeliskPos.X, obeliskPos.Y);
-                            pathfinding.PathPoints = pathfinding.FindPathAStar(
+                            PathfindingPlugin.CurrentTarget = new Vector2(obeliskPos.X, obeliskPos.Y);
+                            PathfindingPlugin.PathPoints = PathfindingPlugin.FindPathAStar(
                                 new Vector2(playerPos.X, playerPos.Y),
-                                pathfinding.CurrentTarget);
-                            pathfinding.AutoNavigate = true;
+                                PathfindingPlugin.CurrentTarget);
+                            PathfindingPlugin.AutoNavigate = true;
+                            CurrentAction = $"正在导航到方尖碑，距离: {distance}";
+                            AddDebugMessage($"AutoNavigate: {PathfindingPlugin.AutoNavigate}");
                         }
                     }
                     else
@@ -182,6 +220,7 @@ namespace Turbo.Plugins.User
                         Hud.Interaction.MouseDown(MouseButtons.Left);
                         Hud.Interaction.MouseUp(MouseButtons.Left);
                         DelayTimer.Restart();
+                        PathfindingPlugin.AutoNavigate = false;
                     }
                 }
                 else
@@ -222,6 +261,7 @@ namespace Turbo.Plugins.User
             else if (IsInRift)
             {
                 CurrentStep = RiftStep.ClearRift;
+                PathfindingPlugin.AutoNavigate = true;
             }
         }
 
@@ -254,7 +294,7 @@ namespace Turbo.Plugins.User
         private void TalkToOrek()
         {
             CurrentAction = "与欧瑞克对话...";
-            var orek = Hud.Game.Actors.FirstOrDefault(a => a.SnoActor.Sno == (ActorSnoEnum)403012); // 转换为枚举
+            var orek = Hud.Game.Actors.FirstOrDefault(a => a.SnoActor.Sno == (ActorSnoEnum)403012);
             if (orek != null)
             {
                 Hud.Interaction.MouseMove(orek.FloorCoordinate.X, orek.FloorCoordinate.Y, orek.FloorCoordinate.Z);
@@ -284,6 +324,7 @@ namespace Turbo.Plugins.User
                 Hud.Interaction.MouseUp(MouseButtons.Left);
                 Running = false;
                 CurrentStep = RiftStep.OpenRift;
+                PathfindingPlugin.AutoNavigate = false;
             }
         }
     }

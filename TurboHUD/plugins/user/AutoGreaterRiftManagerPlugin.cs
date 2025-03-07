@@ -4,7 +4,7 @@ namespace Turbo.Plugins.User
     using SharpDX.DirectInput;
     using System;
 
-    public class AutoGreaterRiftManagerPlugin : BasePlugin, IKeyEventHandler
+    public class AutoGreaterRiftManagerPlugin : BasePlugin, IKeyEventHandler, INewAreaHandler // 添加 INewAreaHandler 接口
     {
         public bool Running { get; set; }
         private AutoGreaterRiftPlugin RiftPlugin { get; set; }
